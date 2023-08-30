@@ -41,6 +41,8 @@ namespace WebAPIExample.Controllers
               return NotFound();
           }
             var order = await _context.Orders.Include(x => x.Customer)
+                                .Include(x => x.OrderLines)!
+                                .ThenInclude(x => x.Item)
                                 .SingleOrDefaultAsync(x => x.Id == id);
 
             if (order == null)
@@ -49,6 +51,49 @@ namespace WebAPIExample.Controllers
             }
 
             return order;
+        }
+
+        // GET: api/Orders/{id}/ok
+        [HttpGet("ok")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersIfOk()
+        {
+          if(_context.Orders == null)
+            {
+                return NotFound();
+            }
+          return await _context.Orders
+                        .Where(x => x.Status == "OK")
+                        .Include(x => x.Customer)
+                        .ToListAsync();
+        }
+
+
+        //Put: api/Orders/{id}/ok
+        //Updating Order Status to OK
+
+        [HttpPut("{id}/ok")]
+        public async Task<IActionResult> SetOrderStatusToOk(int id, Order order)
+        {
+            order.Status = "OK";
+            return await PutOrder(id, order);   
+        }
+
+        //PUT: api/Orders/{id}/backorder
+
+        [HttpPut("{id}/backorder")]
+        public async Task<IActionResult> SetOrderStatusToBackOrder(int id, Order order)
+        {
+            order.Status = "Backorder";
+            return await PutOrder(id, order);
+        }
+
+        //PUT: api/Orders/{id}/closed
+
+        [HttpPut("{id}/closed")]
+        public async Task<IActionResult> SetOrderStatusToClosed(int id, Order order)
+        {
+            order.Status = "Closed";
+            return await PutOrder(id, order);
         }
 
         // PUT: api/Orders/5
